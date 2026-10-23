@@ -43,7 +43,11 @@ if (-not $SkipPresentMon) {
     if (Test-Path (Join-Path $root "third_party\PresentMon\PresentMon.exe")) {
         Write-Host "Using existing third_party\PresentMon\PresentMon.exe (delete it to re-download)."
     } else {
-        & (Join-Path $PSScriptRoot "fetch-presentmon.ps1") -Version $PresentMonVersion
+        try {
+            & (Join-Path $PSScriptRoot "fetch-presentmon.ps1") -Version $PresentMonVersion
+        } catch {
+            Write-Warning "PresentMon download failed: $($_.Exception.Message). Continuing without it (FPS will show 'PresentMon not found')."
+        }
     }
 }
 

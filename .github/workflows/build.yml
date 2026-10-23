@@ -44,19 +44,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Capture output and surface failures as annotations (readable through the API).
-          ./build/build.ps1 -Version ${{ steps.ver.outputs.version }} *>&1 | Tee-Object -FilePath build-output.log
-          $code = $LASTEXITCODE
-          if (-not $?) { $code = 1 }
-          if ($code -ne 0 -or (Select-String -Path build-output.log -Pattern 'Build FAILED|error [A-Z]+[0-9]+|Exception|Failed!|throw' -Quiet)) {
-            Select-String -Path build-output.log -Pattern 'error [A-Z]+[0-9]+:|Exception|Failed |\[FAIL\]|failed|not found|throw|Cannot|denied' |
-              Select-Object -First 45 | ForEach-Object {
-                $m = $_.Line.Trim() -replace '%','%25' -replace "`r",'' -replace "`n",' '
-                if ($m.Length -gt 900) { $m = $m.Substring(0, 900) }
-                Write-Output "::error title=build line $($_.LineNumber)::$m"
-              }
-            Get-Content build-output.log -Tail 25 | ForEach-Object { $t = $_.Trim(); if ($t) { Write-Output "::warning title=tail::$t" } }
+          $ErrorActionPreference = 'Continue'
+          $code = 0
+          try {
+            & ./build/build.ps1 -Version ${{ steps.ver.outputs.version }} *>&1 | Tee-Object -FilePath build-output.log
+            if (-not $?) { $code = 1 }
+          } catch {
+            $code = 1
+            Write-Output "::error title=exception::$($_.Exception.Message -replace "`r?`n",' ')"
+            Write-Output "::error title=where::$($_.InvocationInfo.PositionMessage -replace "`r?`n",' ')"
           }
-          if ($code -ne 0) { exit $code }
+          if ($code -ne 0 -and (Test-Path build-output.log)) {
+            Select-String -Path build-output.log -Pattern 'error [A-Z]+[0-9]+:|Exception|\[FAIL\]|Failed |failed|not found|Cannot|denied|throw' |
+              Select-Object -First 40 | ForEach-Object {
+                $m = $_.Line.Trim() -replace '%','%25' -replace "`r",''
+                if ($m.Length -gt 900) { $m = $m.Substring(0, 900) }
+                Write-Output "::error title=line $($_.LineNumber)::$m"
+              }
+            Get-Content build-output.log -Tail 30 | ForEach-Object { $t = $_.Trim(); if ($t) { Write-Output "::warning title=tail::$t" } }
+          }
+          exit $code
 
       - name: Smoke-test the installer (silent install, start, uninstall)
         shell: pwsh
