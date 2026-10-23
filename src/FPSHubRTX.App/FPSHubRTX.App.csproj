@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The WPF desktop application. Produces FPSHubRTX.exe.
+    Windows 10 2004 (19041) SDK contract is used for the Store/Xbox package catalog (Windows.Management.Deployment).
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>FPSHubRTX</AssemblyName>
+    <RootNamespace>FPSHubRTX.App</RootNamespace>
+    <ApplicationIcon>Assets\FPSHubRTX.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Product>FPS Hub RTX</Product>
+    <AssemblyTitle>FPS Hub RTX</AssemblyTitle>
+    <Description>Game library, launcher and PresentMon-based FPS monitor</Description>
+    <!-- Allows `dotnet build` of this project on non-Windows CI; running still requires Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Release publishing: one self-contained FPSHubRTX.exe, no .NET install needed. -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>embedded</DebugType>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF + WinForms both define Application, MessageBox, etc. Only WinForms' NotifyIcon is used (fully qualified). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FPSHubRTX.ViewModels\FPSHubRTX.ViewModels.csproj" />
+    <ProjectReference Include="..\FPSHubRTX.Core\FPSHubRTX.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\FPSHubRTX.ico" />
+    <Resource Include="Assets\logo-256.png" />
+    <Resource Include="Assets\splash.png" />
+  </ItemGroup>
+
+  <!-- PresentMon (MIT licence) is copied next to the exe when build\fetch-presentmon.ps1 has downloaded it. -->
+  <ItemGroup Condition="Exists('..\..\third_party\PresentMon\PresentMon.exe')">
+    <None Include="..\..\third_party\PresentMon\PresentMon.exe" Link="tools\PresentMon\PresentMon.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Include="..\..\third_party\PresentMon\LICENSE.txt" Link="tools\PresentMon\LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" Condition="Exists('..\..\third_party\PresentMon\LICENSE.txt')" />
+  </ItemGroup>
+</Project>

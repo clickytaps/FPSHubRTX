@@ -1,0 +1,100 @@
+<UserControl x:Class="FPSHubRTX.App.Views.PerformanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:FPSHubRTX.App.Controls"
+             xmlns:vm="clr-namespace:FPSHubRTX.ViewModels;assembly=FPSHubRTX.ViewModels">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,6,28,28">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Refresh" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox ItemsSource="{Binding IntervalOptions}" SelectedItem="{Binding IntervalMs}" MinWidth="90" Margin="0,0,4,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding StringFormat='{}{0} ms'}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox Content="Minimal-resource mode" IsChecked="{Binding MinimalMode}" Margin="12,0,12,0" VerticalAlignment="Center"
+                              ToolTip="Samples only CPU, GPU and memory to keep monitoring overhead very low." />
+                    <Button Content="Start" Command="{Binding StartCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />
+                    <Button Content="Stop" Command="{Binding StopCommand}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Performance" Style="{StaticResource H1}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0">
+                        <Run Text="Game:" /> <Run Text="{Binding GameName, Mode=OneWay}" /> <Run Text="  ·  Foreground:" /> <Run Text="{Binding ForegroundText, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <WrapPanel Margin="0,20,0,0">
+                <ContentControl Content="{Binding Fps}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Cpu}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Gpu}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Ram}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Vram}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding GameMemory}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding CpuTemp}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding GpuTemp}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Disk}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+                <ContentControl Content="{Binding Network}" ContentTemplate="{StaticResource MetricTileTemplate}" />
+            </WrapPanel>
+
+            <UniformGrid Columns="2" Margin="0,6,0,0">
+                <Border Style="{StaticResource Card}" Margin="0,0,9,14">
+                    <StackPanel>
+                        <TextBlock Text="CPU usage" Style="{StaticResource H3}" />
+                        <c:LineChart Height="150" Margin="0,8,0,0" Values="{Binding CpuHistory}" MaxValue="100" Unit="%" Stroke="{DynamicResource AccentBrush}"
+                                     Fill="{DynamicResource AccentSoftBrush}" LabelBrush="{DynamicResource MutedBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="9,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="GPU usage" Style="{StaticResource H3}" />
+                        <c:LineChart Height="150" Margin="0,8,0,0" Values="{Binding GpuHistory}" MaxValue="100" Unit="%" Stroke="{DynamicResource Accent2Brush}"
+                                     LabelBrush="{DynamicResource MutedBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,9,14">
+                    <StackPanel>
+                        <TextBlock Text="Memory usage" Style="{StaticResource H3}" />
+                        <c:LineChart Height="150" Margin="0,8,0,0" Values="{Binding RamHistory}" MaxValue="100" Unit="%" Stroke="{DynamicResource Accent3Brush}"
+                                     LabelBrush="{DynamicResource MutedBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="9,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Measured FPS (per second)" Style="{StaticResource H3}" />
+                        <c:LineChart Height="150" Margin="0,8,0,0" Values="{Binding FpsHistory}" Stroke="{DynamicResource SuccessBrush}"
+                                     LabelBrush="{DynamicResource MutedBrush}" EmptyText="FPS appears here while a game is measured" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Drives" Style="{StaticResource H3}" Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding Drives}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:DriveRow}">
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="160" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="220" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Root}" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Label}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                                    <ProgressBar Grid.Column="2" Value="{Binding UsedFraction, Mode=OneWay}" Maximum="1" Margin="0,0,14,0" />
+                                    <TextBlock Grid.Column="3" Text="{Binding FreeText}" Style="{StaticResource Caption}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Caption}" Margin="0,12,0,0" Foreground="{DynamicResource MutedBrush}"
+                       Text="Sources: GetSystemTimes and GlobalMemoryStatusEx (Windows), Windows performance counters for GPU, disk and network, NVIDIA NVML for NVIDIA GPU temperature. Metrics a PC doesn't expose are shown as unavailable — hover a tile for details." />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

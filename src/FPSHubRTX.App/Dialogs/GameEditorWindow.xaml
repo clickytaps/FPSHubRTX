@@ -1,0 +1,102 @@
+<Window x:Class="FPSHubRTX.App.Dialogs.GameEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}" Width="720" Height="760" MinHeight="500" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False" Background="{DynamicResource Bg1Brush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="{StaticResource UiFont}" FontSize="13.5">
+    <Window.Resources>
+        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Overline}">
+            <Setter Property="Margin" Value="0,14,0,6" />
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="22,14">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Cancel" IsCancel="True" Margin="0,0,8,0" Style="{StaticResource GhostButton}" />
+                    <Button Content="Save" IsDefault="True" Click="Save_Click" Style="{StaticResource PrimaryButton}" />
+                </StackPanel>
+                <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="26,20,26,26">
+                <TextBlock Text="{Binding DisplayName}" Style="{StaticResource H2}" />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0">
+                    <Run Text="{Binding LauncherName, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding InstallPath, Mode=OneWay}" />
+                </TextBlock>
+
+                <TextBlock Text="DISPLAY NAME" Style="{StaticResource Label}" />
+                <TextBox Text="{Binding CustomName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Leave empty to use the name reported by the launcher." />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0">
+                    <Run Text="Detected name:" /> <Run Text="{Binding DetectedName, Mode=OneWay}" />
+                </TextBlock>
+
+                <TextBlock Text="LAUNCH METHOD" Style="{StaticResource Label}" />
+                <ComboBox ItemsSource="{Binding LaunchPreferences}" SelectedItem="{Binding LaunchPreference}" DisplayMemberPath="Label" />
+                <ItemsControl ItemsSource="{Binding LaunchMethodDescriptions}" Margin="0,6,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat='• {0}'}" Style="{StaticResource Caption}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0"
+                           Text="Games from Steam, Epic, Riot, Ubisoft, EA, Battle.net and the Xbox app normally need their launcher. FPS Hub never bypasses launchers, DRM or anti-cheat." />
+
+                <TextBlock Text="LAUNCH ARGUMENTS" Style="{StaticResource Label}" />
+                <TextBox Text="{Binding CustomArguments, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource MonoFont}" />
+
+                <TextBlock Text="EXECUTABLE" Style="{StaticResource Label}" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearExeCommand}" Margin="6,0,0,0" Style="{StaticResource GhostButton}" />
+                    <Button DockPanel.Dock="Right" Content="Browse…" Command="{Binding BrowseExeCommand}" Margin="6,0,0,0" />
+                    <TextBox Text="{Binding CustomExecutablePath, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0">
+                    <Run Text="Detected:" /> <Run Text="{Binding DetectedExecutable, Mode=OneWay}" />
+                </TextBlock>
+
+                <TextBlock Text="COVER ART" Style="{StaticResource Label}" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearCoverCommand}" Margin="6,0,0,0" Style="{StaticResource GhostButton}" />
+                    <Button DockPanel.Dock="Right" Content="Browse…" Command="{Binding BrowseCoverCommand}" Margin="6,0,0,0" />
+                    <TextBox Text="{Binding CustomCoverPath, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+
+                <TextBlock Text="COLLECTIONS (comma separated)" Style="{StaticResource Label}" />
+                <TextBox Text="{Binding CollectionsText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0">
+                    <Run Text="Existing:" /> <Run Text="{Binding ExistingCollections.Count, Mode=OneWay}" /> <Run Text="collection(s)" />
+                </TextBlock>
+
+                <TextBlock Text="PERFORMANCE PROFILE" Style="{StaticResource Label}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Overlay layout" Style="{StaticResource Caption}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding OverlayLayouts}" SelectedItem="{Binding OverlayLayout}" DisplayMemberPath="Label" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Overlay visibility" Style="{StaticResource Caption}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding ShowOverlayOptions}" SelectedItem="{Binding ShowOverlay}" DisplayMemberPath="Label" />
+                    </StackPanel>
+                </Grid>
+                <CheckBox Content="Measure FPS automatically when this game starts" IsChecked="{Binding AutoCaptureFps}" Margin="0,12,0,4" />
+                <CheckBox Content="Track play sessions for this game" IsChecked="{Binding TrackSessions}" />
+                <CheckBox Content="Keep the raw PresentMon frame log (CSV) after each session" IsChecked="{Binding KeepFrameLog}" />
+
+                <TextBlock Text="NOTES" Style="{StaticResource Label}" />
+                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+
+                <TextBlock Text="TROUBLESHOOTING NOTES" Style="{StaticResource Label}" />
+                <TextBox Text="{Binding TroubleshootingNotes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

@@ -1,0 +1,152 @@
+<UserControl x:Class="FPSHubRTX.App.Views.SessionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:FPSHubRTX.App.Controls"
+             xmlns:vm="clr-namespace:FPSHubRTX.ViewModels;assembly=FPSHubRTX.ViewModels">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,6,28,28">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Export JSON" Command="{Binding ExportJsonCommand}" Margin="0,0,8,0" />
+                    <Button Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0" />
+                    <Button Content="Delete history" Command="{Binding DeleteHistoryCommand}" Style="{StaticResource DangerButton}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Game Sessions" Style="{StaticResource H1}" />
+                    <TextBlock Text="Playtime and measured performance, stored only on this PC." Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                </StackPanel>
+            </DockPanel>
+
+            <WrapPanel Margin="0,20,0,0">
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="TODAY" Style="{StaticResource Overline}" /><TextBlock Text="{Binding Today}" Style="{StaticResource MetricValue}" /></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="THIS WEEK" Style="{StaticResource Overline}" /><TextBlock Text="{Binding ThisWeek}" Style="{StaticResource MetricValue}" /></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="THIS MONTH" Style="{StaticResource Overline}" /><TextBlock Text="{Binding ThisMonth}" Style="{StaticResource MetricValue}" /></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="ALL TIME" Style="{StaticResource Overline}" /><TextBlock Text="{Binding AllTime}" Style="{StaticResource MetricValue}" /></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="SESSIONS" Style="{StaticResource Overline}" /><TextBlock Text="{Binding SessionCount}" Style="{StaticResource MetricValue}" />
+                        <TextBlock Style="{StaticResource Caption}"><Run Text="avg" /> <Run Text="{Binding AverageSession, Mode=OneWay}" /></TextBlock></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="180" Margin="0,0,14,14">
+                    <StackPanel><TextBlock Text="AVG MEASURED FPS" Style="{StaticResource Overline}" /><TextBlock Text="{Binding AverageFps}" Style="{StaticResource MetricValue}" Foreground="{DynamicResource Accent2Brush}" />
+                        <TextBlock Text="last 30 days" Style="{StaticResource Caption}" /></StackPanel>
+                </Border>
+            </WrapPanel>
+
+            <Border Style="{StaticResource Card}" Margin="0,4,0,0">
+                <StackPanel>
+                    <TextBlock Text="Minutes played per day (last 30 days)" Style="{StaticResource H3}" />
+                    <c:BarChart Height="170" Margin="0,12,0,0" Values="{Binding DailyMinutes}" Labels="{Binding DailyLabels}"
+                                BarBrush="{DynamicResource AccentGradient}" LabelBrush="{DynamicResource MutedBrush}" />
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Most played" Style="{StaticResource H3}" Margin="0,0,0,10" />
+                        <ItemsControl ItemsSource="{Binding MostPlayed}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:BarItem}">
+                                    <StackPanel Margin="0,5">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ValueText}" Style="{StaticResource Caption}" />
+                                            <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                        <ProgressBar Value="{Binding Fraction, Mode=OneWay}" Maximum="1" Height="6" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No sessions recorded yet." Style="{StaticResource Caption}"
+                                   Visibility="{Binding HasSessions, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="FPS history by game" Style="{StaticResource H3}" Margin="0,0,0,10" />
+                        <ItemsControl ItemsSource="{Binding FpsByGame}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FpsHistoryRow}">
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="120" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Game}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" />
+                                            <TextBlock Style="{StaticResource Caption}">
+                                                <Run Text="Best avg" /> <Run Text="{Binding Best, Mode=OneWay}" /> <Run Text="· latest" /> <Run Text="{Binding Latest, Mode=OneWay}" />
+                                                <Run Text="·" /> <Run Text="{Binding Sessions, Mode=OneWay}" /> <Run Text="sessions" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <c:LineChart Grid.Column="1" Height="36" Values="{Binding Series}" ShowAxisLabels="False" EmptyText="1 session"
+                                                     Stroke="{DynamicResource Accent2Brush}" LabelBrush="{DynamicResource MutedBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="FPS history appears after sessions where FPS was measured." Style="{StaticResource Caption}"
+                                   Visibility="{Binding FpsByGame.Count, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                <StackPanel>
+                    <TextBlock Text="Recent sessions" Style="{StaticResource H3}" Margin="0,0,0,10" />
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1.3*" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="1.6*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="GAME" Style="{StaticResource Overline}" />
+                        <TextBlock Grid.Column="1" Text="STARTED" Style="{StaticResource Overline}" />
+                        <TextBlock Grid.Column="2" Text="DURATION" Style="{StaticResource Overline}" />
+                        <TextBlock Grid.Column="3" Text="AVG FPS" Style="{StaticResource Overline}" />
+                        <TextBlock Grid.Column="4" Text="1% LOW" Style="{StaticResource Overline}" />
+                        <TextBlock Grid.Column="5" Text="ENDED" Style="{StaticResource Overline}" />
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding RecentSessions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:SessionRow}">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="1.3*" />
+                                        <ColumnDefinition Width="0.8*" />
+                                        <ColumnDefinition Width="0.8*" />
+                                        <ColumnDefinition Width="0.8*" />
+                                        <ColumnDefinition Width="1.6*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Game}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Date}" Style="{StaticResource Caption}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Duration}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Fps}" />
+                                    <TextBlock Grid.Column="4" Text="{Binding OnePercentLow}" />
+                                    <TextBlock Grid.Column="5" Text="{Binding Ended}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

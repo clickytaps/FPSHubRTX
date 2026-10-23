@@ -1,0 +1,17 @@
+<Project>
+  <!-- Shared settings for every project in the solution. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Company>Clickys Gaming Optimizer</Company>
+    <Product>FPS Hub RTX</Product>
+    <Copyright>© 2026 Clickys Gaming Optimizer</Copyright>
+    <Deterministic>true</Deterministic>
+    <!-- CA1416 = platform compatibility. Windows-only calls are guarded at runtime with OperatingSystem.IsWindows(). -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,328 @@
+<UserControl x:Class="FPSHubRTX.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FPSHubRTX.ViewModels;assembly=FPSHubRTX.ViewModels"
+             xmlns:svc="clr-namespace:FPSHubRTX.Core.Services;assembly=FPSHubRTX.Core">
+    <UserControl.Resources>
+        <Style x:Key="Section" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Padding" Value="22" />
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource H2}">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="FontSize" Value="17" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+            <Setter Property="Margin" Value="0,10,0,4" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,6,28,28" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource H1}" />
+            <TextBlock Text="Changes apply immediately and are saved automatically." Style="{StaticResource Caption}" Margin="0,2,0,18" />
+
+            <!-- Appearance -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Content="Dark theme" IsChecked="{Binding IsDarkTheme}" GroupName="Theme" />
+                        <RadioButton Content="Light theme" IsChecked="{Binding IsLightTheme}" GroupName="Theme" />
+                    </StackPanel>
+                    <TextBlock Text="Accent colour" Style="{StaticResource FieldLabel}" />
+                    <StackPanel Orientation="Horizontal">
+                        <ItemsControl ItemsSource="{Binding AccentPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Width="28" Height="28" Margin="0,0,8,0" Padding="0" ToolTip="{Binding}" Cursor="Hand"
+                                            Command="{Binding DataContext.SetAccentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Ellipse Fill="{Binding Converter={StaticResource HexToBrush}}" Stroke="{DynamicResource LineBrush}" StrokeThickness="2" />
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBox Text="{Binding AccentColor, UpdateSourceTrigger=LostFocus}" Width="100" Margin="8,0,0,0" ToolTip="Custom colour as #RRGGBB" />
+                    </StackPanel>
+                    <CheckBox Content="Smooth animations and transitions" IsChecked="{Binding EnableAnimations}" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Startup & window -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Startup &amp; window" Style="{StaticResource SectionTitle}" />
+                    <CheckBox Content="Start FPS Hub with Windows" IsChecked="{Binding StartWithWindows}" />
+                    <CheckBox Content="Start minimised" IsChecked="{Binding StartMinimized}" />
+                    <CheckBox Content="Minimise to the system tray" IsChecked="{Binding MinimizeToTray}" />
+                    <CheckBox Content="Close button keeps FPS Hub running in the tray" IsChecked="{Binding CloseToTray}" />
+                    <CheckBox Content="Show the loading screen" IsChecked="{Binding ShowSplashScreen}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Overlay -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="In-game overlay" Style="{StaticResource SectionTitle}" />
+                    <CheckBox Content="Enable the overlay" IsChecked="{Binding OverlayEnabled}" />
+                    <CheckBox Content="Show it automatically while a game runs" IsChecked="{Binding OverlayAutoShow}" />
+                    <CheckBox Content="Keep the overlay on top" IsChecked="{Binding OverlayAlwaysOnTop}" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Layout" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding OverlayLayouts}" SelectedItem="{Binding OverlayLayout}" DisplayMemberPath="Label" />
+                            <TextBlock Text="Position" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding OverlayCorners}" SelectedItem="{Binding OverlayCorner}" DisplayMemberPath="Label" />
+                            <Button Content="Move overlay (toggle edit mode)" Command="{Binding EditOverlayPositionCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="Text size:" /> <Run Text="{Binding OverlayFontSize, Mode=OneWay}" /></TextBlock>
+                            <Slider Minimum="8" Maximum="36" Value="{Binding OverlayFontSize}" SmallChange="1" LargeChange="2" />
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="Background opacity:" /> <Run Text="{Binding OverlayOpacity, Mode=OneWay, StringFormat=P0}" /></TextBlock>
+                            <Slider Minimum="0" Maximum="1" Value="{Binding OverlayOpacity}" SmallChange="0.05" LargeChange="0.1" />
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Text colour" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Text="{Binding OverlayTextColor, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Highlight colour" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Text="{Binding OverlayAccentColor, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="Metrics in 'Full performance' layout" Style="{StaticResource FieldLabel}" />
+                    <ItemsControl ItemsSource="{Binding OverlayMetrics}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:OverlayMetricToggle}">
+                                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsEnabled}" Width="190" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Show / hide hotkey" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding OverlayHotkey, UpdateSourceTrigger=LostFocus}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Move (edit mode) hotkey" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding OverlayEditHotkey, UpdateSourceTrigger=LostFocus}" />
+                        </StackPanel>
+                        <Button Grid.Column="3" Content="Apply hotkeys" Command="{Binding ApplyHotkeysCommand}" VerticalAlignment="Bottom" Margin="12,0,0,0" />
+                    </Grid>
+                    <TextBlock Text="{Binding HotkeyStatus}" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,10,0,0" Foreground="{DynamicResource MutedBrush}"
+                               Text="The overlay is a separate always-on-top window (nothing is injected into games). It shows over windowed and borderless-fullscreen games. Exclusive-fullscreen games may draw over it — switch the game to borderless, or use the Performance page on a second monitor or the tray menu." />
+                </StackPanel>
+            </Border>
+
+            <!-- FPS -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="FPS measurement" Style="{StaticResource SectionTitle}" />
+                    <CheckBox Content="Measure FPS automatically when a game starts" IsChecked="{Binding AutoCaptureFps}" />
+                    <CheckBox Content="Count displayed frames instead of presented frames (when available)" IsChecked="{Binding PreferDisplayedFrames}" />
+                    <TextBlock Text="PresentMon executable" Style="{StaticResource FieldLabel}" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Use bundled" Command="{Binding ClearPresentMonCommand}" Margin="6,0,0,0" Style="{StaticResource GhostButton}" />
+                        <Button DockPanel.Dock="Right" Content="Browse…" Command="{Binding BrowsePresentMonCommand}" Margin="6,0,0,0" />
+                        <TextBox Text="{Binding PresentMonPath, UpdateSourceTrigger=LostFocus}" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding PresentMonStatus}" Style="{StaticResource Caption}" Margin="0,4,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="Pause threshold:" /> <Run Text="{Binding MaxValidFrameTimeMs, Mode=OneWay}" /> <Run Text="ms" /></TextBlock>
+                            <Slider Minimum="250" Maximum="5000" Value="{Binding MaxValidFrameTimeMs}" SmallChange="50" LargeChange="250"
+                                    ToolTip="Frames longer than this (loading screens, alt-tab) are excluded from statistics and counted separately." />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="Graph window:" /> <Run Text="{Binding GraphWindowSeconds, Mode=OneWay}" /> <Run Text="s" /></TextBlock>
+                            <Slider Minimum="5" Maximum="120" Value="{Binding GraphWindowSeconds}" SmallChange="1" LargeChange="10" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="No-frames timeout:" /> <Run Text="{Binding NoFramesTimeoutSeconds, Mode=OneWay}" /> <Run Text="s" /></TextBlock>
+                            <Slider Minimum="5" Maximum="60" Value="{Binding NoFramesTimeoutSeconds}" SmallChange="1" LargeChange="5" />
+                        </StackPanel>
+                    </Grid>
+                    <Button Content="Fix measurement permissions…" Command="{Binding FixPermissionsCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Monitoring & tracking -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Performance monitoring &amp; playtime" Style="{StaticResource SectionTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Sampling interval" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <ComboBox ItemsSource="{Binding IntervalOptions}" SelectedItem="{Binding SampleIntervalMs}" MinWidth="100">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding StringFormat='{}{0} ms'}" /></DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                    <CheckBox Content="Minimal-resource monitoring mode" IsChecked="{Binding MinimalResourceMode}" Margin="0,10,0,0" />
+                    <CheckBox Content="Start system monitoring when FPS Hub opens" IsChecked="{Binding MonitorOnStartup}" />
+                    <CheckBox Content="Track playtime" IsChecked="{Binding TrackPlaytime}" />
+                    <CheckBox Content="Also track library games started outside FPS Hub" IsChecked="{Binding TrackExternalGames}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Notifications -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Notifications" Style="{StaticResource SectionTitle}" />
+                    <CheckBox Content="Enable notifications" IsChecked="{Binding NotificationsEnabled}" />
+                    <WrapPanel IsEnabled="{Binding NotificationsEnabled}">
+                        <CheckBox Content="Scan completed" IsChecked="{Binding NotifyScanCompleted}" Width="250" />
+                        <CheckBox Content="New games discovered" IsChecked="{Binding NotifyNewGames}" Width="250" />
+                        <CheckBox Content="Game launched" IsChecked="{Binding NotifyGameLaunched}" Width="250" />
+                        <CheckBox Content="Game launch failed" IsChecked="{Binding NotifyLaunchFailed}" Width="250" />
+                        <CheckBox Content="Game session ended" IsChecked="{Binding NotifySessionEnded}" Width="250" />
+                        <CheckBox Content="Benchmark completed" IsChecked="{Binding NotifyBenchmark}" Width="250" />
+                        <CheckBox Content="Performance thresholds" IsChecked="{Binding NotifyThresholds}" Width="250" />
+                    </WrapPanel>
+                    <Grid Margin="0,6,0,0" IsEnabled="{Binding NotifyThresholds}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="FPS below:" /> <Run Text="{Binding FpsBelowThreshold, Mode=OneWay}" /></TextBlock>
+                            <Slider Minimum="0" Maximum="240" Value="{Binding FpsBelowThreshold}" SmallChange="1" LargeChange="10" ToolTip="0 = off" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="CPU above:" /> <Run Text="{Binding CpuAboveThreshold, Mode=OneWay}" /><Run Text="%" /></TextBlock>
+                            <Slider Minimum="0" Maximum="100" Value="{Binding CpuAboveThreshold}" SmallChange="1" LargeChange="5" ToolTip="0 = off" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="GPU temp above:" /> <Run Text="{Binding GpuTempAboveThreshold, Mode=OneWay}" /><Run Text=" °C" /></TextBlock>
+                            <Slider Minimum="0" Maximum="110" Value="{Binding GpuTempAboveThreshold}" SmallChange="1" LargeChange="5" ToolTip="0 = off" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="6">
+                            <TextBlock Style="{StaticResource FieldLabel}"><Run Text="For at least:" /> <Run Text="{Binding ThresholdSeconds, Mode=OneWay}" /><Run Text=" s" /></TextBlock>
+                            <Slider Minimum="2" Maximum="120" Value="{Binding ThresholdSeconds}" SmallChange="1" LargeChange="5" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Privacy & data -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Privacy &amp; data" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8"
+                               Text="Everything is stored locally in your data folder. FPS Hub never uploads your game list and never reads launcher credentials or tokens." />
+                    <CheckBox Content="Download missing Steam cover art from Steam's public image server (shares installed Steam app ids with Steam's CDN)" IsChecked="{Binding DownloadCoverArt}" />
+                    <Button Content="Download covers now" Command="{Binding DownloadCoversNowCommand}" HorizontalAlignment="Left" Margin="52,4,0,8" />
+                    <CheckBox Content="Include game titles in diagnostic reports" IsChecked="{Binding IncludeTitlesInDiagnostics}" />
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button Content="Back up library &amp; statistics…" Command="{Binding BackupCommand}" Margin="0,0,8,8" />
+                        <Button Content="Restore backup…" Command="{Binding RestoreCommand}" Margin="0,0,8,8" />
+                        <Button Content="Export activity history" Command="{Binding ExportActivityCommand}" Margin="0,0,8,8" />
+                        <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" Style="{StaticResource GhostButton}" Margin="0,0,8,8" />
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}">
+                        <Run Text="Data folder:" /> <Run Text="{Binding DataFolderText, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- Library tools -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Library health &amp; tools" Style="{StaticResource SectionTitle}" />
+                    <WrapPanel>
+                        <Button Content="Run health check" Command="{Binding RunHealthCheckCommand}" Margin="0,0,8,8" />
+                        <Button Content="Re-check install folders" Command="{Binding RefreshStatusesCommand}" Margin="0,0,8,8" />
+                        <Button Content="Create diagnostic report" Command="{Binding DiagnosticReportCommand}" Margin="0,0,8,8" />
+                        <Button Content="Open logs" Command="{Binding OpenLogsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,8,8" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding HealthSummary}" Style="{StaticResource Caption}" Margin="0,4,0,8" />
+                    <ItemsControl ItemsSource="{Binding HealthIssues}" MaxHeight="320">
+                        <ItemsControl.Template>
+                            <ControlTemplate TargetType="ItemsControl">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer>
+                            </ControlTemplate>
+                        </ItemsControl.Template>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type svc:HealthIssue}">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Severity}" Foreground="{Binding Severity, Converter={StaticResource StateToBrush}}" FontWeight="SemiBold" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock TextWrapping="Wrap"><Run Text="{Binding GameName, Mode=OneWay}" FontWeight="SemiBold" /><Run Text=" — " /><Run Text="{Binding Issue, Mode=OneWay}" /></TextBlock>
+                                        <TextBlock Text="{Binding Suggestion}" Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" Foreground="{DynamicResource MutedBrush}"
+                               Text="Library tools only change FPS Hub's own records. They never delete, move or modify game files." />
+                </StackPanel>
+            </Border>
+
+            <!-- Updates & about -->
+            <Border Style="{StaticResource Section}">
+                <StackPanel>
+                    <TextBlock Text="Updates &amp; about" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding VersionText}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ElevationText}" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                    <TextBlock Text="Update feed (optional, https JSON manifest)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding UpdateFeedUrl, UpdateSourceTrigger=LostFocus}" />
+                    <CheckBox Content="Check for updates when FPS Hub starts" IsChecked="{Binding CheckUpdatesOnStartup}" Margin="0,8,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="Check for updates" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0" />
+                        <Button Content="Get the update" Command="{Binding OpenUpdateCommand}" Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                    <Button Content="Reset all settings" Command="{Binding ResetSettingsCommand}" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,16,0,0" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,14,0,0" Foreground="{DynamicResource MutedBrush}"
+                               Text="FPS measurement uses Intel's PresentMon (MIT licence). FPS Hub RTX is not affiliated with Valve, Epic Games, Microsoft, GOG, Ubisoft, EA, Blizzard, Riot Games, Mojang, Roblox or NVIDIA." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

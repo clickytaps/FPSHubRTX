@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Platform-neutral core: models, persistence, scanners, launch resolution, PresentMon telemetry,
+    system monitoring (Windows P/Invoke guarded at runtime), statistics and export.
+    Deliberately has NO NuGet dependencies so it builds offline on any OS.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FPSHubRTX.Core</RootNamespace>
+    <!-- Required by the LibraryImport source generator for Win32 P/Invoke. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FPSHubRTX.Core.Tests" />
+  </ItemGroup>
+</Project>

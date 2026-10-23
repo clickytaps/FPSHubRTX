@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    View models for every page. No WPF references: UI-specific operations go through IPlatformUi,
+    so this project builds (and is unit-testable) on any OS.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FPSHubRTX.ViewModels</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FPSHubRTX.Core\FPSHubRTX.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FPSHubRTX.Core.Tests" />
+  </ItemGroup>
+</Project>

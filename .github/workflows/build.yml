@@ -1,0 +1,60 @@
+# Builds FPSHubRTX.exe, FPSHubRTX-Setup.exe and the portable ZIP on a Windows runner,
+# runs the automated tests, and uploads everything as build artifacts.
+# Push this repository to GitHub, or use "Run workflow" on the Actions tab.
+name: build
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1.0.0)"
+        required: false
+        default: "1.0.0"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+        shell: pwsh
+
+      - name: Work out version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.event.inputs.version }}"
+          if (-not $v -and "${{ github.ref_type }}" -eq "tag") { $v = "${{ github.ref_name }}".TrimStart('v') }
+          if (-not $v) { $v = "1.0.0" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Build, test and package
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build/build.ps1 -Version ${{ steps.ver.outputs.version }}
+
+      - name: Smoke-test the installer (silent install, start, uninstall)
+        shell: pwsh
+        run: ./build/smoke-test.ps1 -Setup artifacts/FPSHubRTX-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FPSHubRTX-${{ steps.ver.outputs.version }}
+          path: |
+            artifacts/FPSHubRTX.exe
+            artifacts/FPSHubRTX-Setup.exe
+            artifacts/FPSHubRTX-Portable-*.zip
+            artifacts/SHA256SUMS.txt
+            artifacts/test-results/**
+          if-no-files-found: error
