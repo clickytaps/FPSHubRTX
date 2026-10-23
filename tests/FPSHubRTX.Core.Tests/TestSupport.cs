@@ -19,6 +19,10 @@ public sealed class TempDir : IDisposable
 
     public string Root { get; }
 
+    /// <summary>Fixture paths are written with '/' or '\'; use the OS separator consistently.</summary>
+    private static string Norm(string relativePath)
+        => relativePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
     public string Dir(params string[] parts)
     {
         var p = Path.Combine(new[] { Root }.Concat(parts).ToArray());
@@ -28,7 +32,7 @@ public sealed class TempDir : IDisposable
 
     public string File(string relativePath, string content = "")
     {
-        var p = Path.Combine(Root, relativePath.Replace('\\', Path.DirectorySeparatorChar));
+        var p = Path.Combine(Root, Norm(relativePath));
         Directory.CreateDirectory(Path.GetDirectoryName(p)!);
         System.IO.File.WriteAllText(p, content);
         return p;
@@ -36,7 +40,7 @@ public sealed class TempDir : IDisposable
 
     public string Bytes(string relativePath, byte[] content)
     {
-        var p = Path.Combine(Root, relativePath.Replace('\\', Path.DirectorySeparatorChar));
+        var p = Path.Combine(Root, Norm(relativePath));
         Directory.CreateDirectory(Path.GetDirectoryName(p)!);
         System.IO.File.WriteAllBytes(p, content);
         return p;
